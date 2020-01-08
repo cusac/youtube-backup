@@ -1,0 +1,14 @@
+{
+  "name": "youtubetomysql",
+  "version": "1.0.0",
+  "description": "Scrape Tom's youtube channel and insert video IDs into MySQL",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.17.1"
+  }
+}
