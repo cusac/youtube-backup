@@ -1,0 +1,13 @@
+# videoToS3
+The purpose of this script is to check for any videos in the MySQL database marked as not yet in s3, download the highest quality version available (which confusingly sometimes will use separate video and audio files and stitch them together), and upload that file to s3. The files will then be deleted from your machine and only remain in s3. If a copy of the s3 bucket is desired on a machine the AWS CLI should be used to sync the bucket.
+
+# How to use (might take an hour of setup the first time, after that run time will depend on how many videos need to be uploaded)
+- Get yourself connected to the MySQL database to be used. Manually check the videos table. You should see most of the videos are already in there and marked as "in_s3". This script will only add those that are not yet in s3 to the s3 bucket. If you are having trouble connecting to the database, remember you will probably have to white list your IP in the security group and network ACL the database is connected to.
+- Log into the AWS console and go to s3. Manually verify that the number of video files in the s3 bucket matches how many are marked "in_s3" in the database. If not, make sure none are missed (might have to manually change in_s3 to 0 for some videos so they will be uploaded again, but this should theoretically never happen).
+- "npm install" (tested with node 12.9.0)
+- Update upload.js with any changes to the environment variables that may be required like your aws access key and secret. The limit can stay at 1000 or some other arbitrary large number. You can see in index.js that there is a throttle than controls how many downloads/uploads go in parallel. This can be increased if you are downloading/uploading a large number of videos but beware of your available hard disk space (estimate 1GB a video or maybe a bit more).
+- Once the videos are done uploading, verify that they are in S3 manually. The code puts them in the root of the videos-youtube-2 bucket, once you are satisfied that the correct videos have been uploaded, select them all, cut them and paste them into the "videos" folder. (I was going to make the code put it in the folder automatically but I figured it is easier to manually verify what has been added in the latest run this way.)
+- Go into the mysql folder in the videos-youtube-2 bucket. Export another copy of the videos table and put it in here (old one can be deleted). This step is so when this bucket is synced to a physical device as is the plan the MySQL will also be backed up if AWS goes away.
+
+# Error note
+-Note that if this code errors at various points it can leave behind large files inside this folder that should be manually deleted.
