@@ -23,7 +23,7 @@ var ffmpeg = require('fluent-ffmpeg');
 async function getHighestVersions(){
     let videos = await getVideos();
 
-    let throttle = 1
+    let throttle = 5
     let count = 0
 
     let interval = setInterval(async ()=>{
@@ -45,22 +45,23 @@ async function getHighestVersions(){
 //Get highest version but only put it in s3 if it isn't already there (in the same size)
 async function addHighestVersionToS3(video){
     //download best video and best audio
-    //let videoCheck = await download(video, 'bestvideo');
-    //let audioCheck = await download(video, 'bestaudio');
+    let videoCheck = await download(video, 'bestvideo');
+    let audioCheck = await download(video, 'bestaudio');
 
-    video.videoFilename = 'Tom Campbell: Intuition, Conscious Computers, and Individuality-dgMRS0bA_2A.mp4'
+    //Debug
+    //video.videoFilename = 'Tom Campbell: Intuition, Conscious Computers, and Individuality-dgMRS0bA_2A.mp4'
 
     //combine or fall back to single file
-    //if(videoCheck !== false && audioCheck != false){
+    if(videoCheck !== false && audioCheck != false){
         await combineVideoAndAudio(video);
         //delete invididual video and audio
         fs.unlinkSync(video.videoid + 'bestvideo')
         fs.unlinkSync(video.videoid + 'bestaudio')
-    // } else {
-    //     console.log('fallback');
-    //     await download(video, 'best')
-    //     await renameFile(video.videoid + '.' + video.videoFilename.split('.').pop(), video.videoFilename)
-    // }
+    } else {
+        console.log('fallback');
+        await download(video, 'best')
+        await renameFile(video.videoid + '.' + video.videoFilename.split('.').pop(), video.videoFilename)
+    }
 
     //console.log(video);
 
