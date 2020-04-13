@@ -9,6 +9,7 @@ The purpose of this script is to check for any videos in the MySQL database mark
 - "node upload.js" to start the process.
 - Once the videos are done uploading, verify that they are in S3 manually. The code puts them in the root of the videos-youtube-2 bucket, once you are satisfied that the correct videos have been uploaded, select them all, cut them and paste them into the "videos" folder. (I was going to make the code put it in the folder automatically but I figured it is easier to manually verify what has been added in the latest run this way.)
 - Go into the mysql folder in the videos-youtube-2 bucket. Export another copy of the videos table and put it in here (old one can be deleted). This step is so when this bucket is synced to a physical device as is the plan the MySQL will also be backed up if AWS goes away.
+- Sync to the synology device (this is mostly automatic but you can verify it is still syncing properly).
 
 # Error note
 -Note that if this code errors at various points it can leave behind large files inside this folder that should be manually deleted.
