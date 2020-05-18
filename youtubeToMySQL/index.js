@@ -1,5 +1,6 @@
 const https = require('https');
 const mysql = require('mysql');
+const moment = require('moment');
 const pool = mysql.createPool({
     host: process.env.DB_HOSTNAME,
     user: process.env.DB_USERNAME,
@@ -18,6 +19,7 @@ async function findAndAddVideos(){
     //Get ALL of the videos
     videos = await findVideos(videos, null);
     console.log(videos.length + ' videos found');
+    console.log(videos);
 
     //Insert all of the videos using INSERT IGNORE so only new ones are put in
     await insertVideos(videos);
@@ -54,13 +56,72 @@ function requestVideos(pageToken){
                     str += chunk;
                 });
                 
-                res.on('end', function () {
+                res.on('end', async function () {
                     let data = JSON.parse(str);
+                    await requestStatistics(data.items);
+                    await requestContentDetails(data.items);
                     resolve(data);
                 });
             });
         }
     );
+}
+
+//Request the statistics of some videos
+function requestStatistics(videos){
+    let ids = videos.map((x)=>{return x.snippet.resourceId.videoId});
+    url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids.join(",")}&key=${process.env.API_TOKEN}`;
+
+    return new Promise(
+        (resolve)=>{
+            https.get(url, (res) => {
+                str = '';
+                res.on('data', function (chunk) {
+                    str += chunk;
+                });
+                
+                res.on('end', function () {
+                    let data = JSON.parse(str);
+                    joinDataTo(videos, data.items, 'statistics');
+                    resolve();
+                });
+            });
+        }
+    );
+}
+
+//Request the contentDetails of some videos
+function requestContentDetails(videos){
+    let ids = videos.map((x)=>{return x.snippet.resourceId.videoId});
+    url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids.join(",")}&key=${process.env.API_TOKEN}`;
+
+    return new Promise(
+        (resolve)=>{
+            https.get(url, (res) => {
+                str = '';
+                res.on('data', function (chunk) {
+                    str += chunk;
+                });
+                
+                res.on('end', function () {
+                    let data = JSON.parse(str);
+                    joinDataTo(videos, data.items, 'contentDetails');
+                    resolve();
+                });
+            });
+        }
+    );
+}
+
+//Update videos with the statistics or contentDetails
+function joinDataTo(videos, info, type){
+    videos.forEach((video)=>{
+        info.forEach((item)=>{
+            if(video.snippet.resourceId.videoId == item.id){
+                video[type] = item[type];
+            }
+        });
+    });
 }
 
 //insert videos into database
@@ -74,7 +135,13 @@ function insertVideos(videos){
             video.snippet.resourceId.videoId,
             video.snippet.title,
             video.snippet.description,
-            video.snippet.publishedAt
+            video.snippet.publishedAt,
+            video.statistics.viewCount,
+            video.statistics.likeCount,
+            video.statistics.dislikeCount,
+            video.statistics.favoriteCount,
+            video.statistics.commentCount,
+            moment.duration(video.contentDetails.duration).asSeconds()
         ]);
     });
 
@@ -87,8 +154,28 @@ function insertVideos(videos){
                     throw new Error("Unable to get connection to database:" + err);
                 } else {
                     connection.query(
-                        `INSERT IGNORE INTO videos (videoid, title, description, publishedat)
+                        `INSERT INTO videos (
+                            videoid,
+                            title,
+                            description,
+                            publishedat,
+                            viewcount,
+                            likecount,
+                            dislikecount,
+                            favoritecount,
+                            commentcount,
+                            duration
+                        )
                         VALUES ?
+                        ON DUPLICATE KEY UPDATE
+                            title = VALUES(title),
+                            description = VALUES(description),
+                            viewcount = VALUES(viewcount),
+                            likecount = VALUES(likecount),
+                            dislikecount = VALUES(dislikecount),
+                            favoritecount = VALUES(favoritecount),
+                            commentcount = VALUES(commentcount),
+                            duration = VALUES(duration)
                         `,
                         [ values ],
                         async function (error, result) {
