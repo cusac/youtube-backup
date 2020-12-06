@@ -18,8 +18,9 @@ async function findAndAddVideos(){
 
     //Get ALL of the videos
     videos = await findVideos(videos, null);
-    console.log(videos.length + ' videos found');
-    console.log(videos);
+    // console.log(videos.length + ' videos found');
+    // console.log(videos);
+    // return;
 
     //Insert all of the videos using INSERT IGNORE so only new ones are put in
     await insertVideos(videos);
@@ -170,6 +171,7 @@ function insertVideos(videos){
                         ON DUPLICATE KEY UPDATE
                             title = VALUES(title),
                             description = VALUES(description),
+                            publishedat = VALUES(publishedat),
                             viewcount = VALUES(viewcount),
                             likecount = VALUES(likecount),
                             dislikecount = VALUES(dislikecount),
