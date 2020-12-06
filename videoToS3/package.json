@@ -13,6 +13,6 @@
     "fluent-ffmpeg": "^2.1.2",
     "mysql": "^2.17.1",
     "s3-upload-stream": "^1.0.7",
-    "youtube-dl": "^2.0.1"
+    "youtube-dl": "^2.3.0"
   }
 }

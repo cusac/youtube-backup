@@ -23,7 +23,7 @@ var ffmpeg = require('fluent-ffmpeg');
 async function getHighestVersions(){
     let videos = await getVideos();
 
-    let throttle = 5
+    let throttle = 10
     let count = 0
 
     let interval = setInterval(async ()=>{
@@ -111,7 +111,7 @@ async function markDone(video){
                     throw new Error("Unable to get connection to database:" + err);
                 } else {
                     connection.query(
-                        `UPDATE videos
+                        `UPDATE ${process.env.tableName}
                         SET in_s3 = 1
                         WHERE videoid = ?
                         `,
@@ -279,7 +279,7 @@ async function getVideos(){
                 } else {
                     connection.query(
                         `SELECT *
-                        FROM videos
+                        FROM ${process.env.tableName}
                         WHERE in_s3 = 0
                         ORDER BY publishedat ASC
                         LIMIT ${process.env.limit}
