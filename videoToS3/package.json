@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.562.0",
+    "aws-sdk": "^2.814.0",
     "fluent-ffmpeg": "^2.1.2",
     "mysql": "^2.17.1",
     "s3-upload-stream": "^1.0.7",
