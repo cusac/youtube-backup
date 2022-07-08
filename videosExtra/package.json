@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "https": "^1.0.0",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "mysql": "^2.18.1"
   }
 }
